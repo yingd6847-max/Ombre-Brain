@@ -33,6 +33,9 @@ def test_patch_flag_is_opt_in_and_accepts_documented_true_values() -> None:
 def test_server_instructions_cover_the_four_behavior_protocols() -> None:
     required_phrases = (
         "回答前先用 breath_search 检索",
+        "即使答案已出现在当前或近期对话上下文",
+        "本轮回答前仍必须实际调用 breath_search",
+        "仅复述上下文而没有工具调用不算检索",
         "不等待小颖说“记一下”",
         "先检索旧值",
         "禁止只追加两个相互冲突的“当前事实”",
@@ -49,6 +52,9 @@ def test_first_512_instruction_characters_are_self_contained() -> None:
     head = ANYING_BEHAVIOR_INSTRUCTIONS[:512]
     for phrase in (
         "回答前先用 breath_search 检索",
+        "即使答案已出现在当前或近期对话上下文",
+        "本轮回答前仍必须实际调用 breath_search",
+        "仅复述上下文而没有工具调用不算检索",
         "不等待小颖说“记一下”",
         "先检索旧值",
         "可并列事实必须共存",
@@ -56,6 +62,16 @@ def test_first_512_instruction_characters_are_self_contained() -> None:
         "即时情绪",
     ):
         assert phrase in head
+
+
+def test_search_description_rejects_recent_context_as_a_retrieval_substitute() -> None:
+    suffix = TOOL_DESCRIPTION_SUFFIXES["breath_search"]
+    for phrase in (
+        "当前或近期对话上下文",
+        "本轮回答前仍必须实际调用本工具",
+        "仅复述上下文而没有工具调用不算检索",
+    ):
+        assert phrase in suffix
 
 
 def test_fastmcp_exposes_server_instructions() -> None:
