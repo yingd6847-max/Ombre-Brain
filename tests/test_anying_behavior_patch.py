@@ -36,6 +36,9 @@ def test_server_instructions_cover_the_four_behavior_protocols() -> None:
         "即使答案已出现在当前或近期对话上下文",
         "本轮回答前仍必须实际调用 breath_search",
         "仅复述上下文而没有工具调用不算检索",
+        "还必须检查 plan 专用通道",
+        'domain="plan"',
+        "plan 不出现在普通检索中",
         "不等待小颖说“记一下”",
         "先检索旧值",
         "禁止只追加两个相互冲突的“当前事实”",
@@ -55,6 +58,9 @@ def test_first_512_instruction_characters_are_self_contained() -> None:
         "即使答案已出现在当前或近期对话上下文",
         "本轮回答前仍必须实际调用 breath_search",
         "仅复述上下文而没有工具调用不算检索",
+        "还必须检查 plan 专用通道",
+        'domain="plan"',
+        "plan 不出现在普通检索中",
         "不等待小颖说“记一下”",
         "先检索旧值",
         "可并列事实必须共存",
@@ -72,6 +78,15 @@ def test_search_description_rejects_recent_context_as_a_retrieval_substitute() -
         "仅复述上下文而没有工具调用不算检索",
     ):
         assert phrase in suffix
+
+
+def test_project_status_retrieval_checks_the_dedicated_plan_channel() -> None:
+    search_suffix = TOOL_DESCRIPTION_SUFFIXES["breath_search"]
+    advanced_suffix = TOOL_DESCRIPTION_SUFFIXES["breath_advanced"]
+    for suffix in (search_suffix, advanced_suffix):
+        assert 'domain="plan"' in suffix
+        assert "plan 不出现在普通检索中" in suffix
+        assert "普通查询无结果不能据此断言" in suffix
 
 
 def test_fastmcp_exposes_server_instructions() -> None:
