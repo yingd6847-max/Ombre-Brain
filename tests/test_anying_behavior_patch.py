@@ -32,10 +32,11 @@ def test_patch_flag_is_opt_in_and_accepts_documented_true_values() -> None:
 
 def test_server_instructions_cover_the_four_behavior_protocols() -> None:
     required_phrases = (
-        "回答前先用 breath_search 检索",
-        "即使答案已出现在当前或近期对话上下文",
-        "本轮回答前仍必须实际调用 breath_search",
-        "仅复述上下文而没有工具调用不算检索",
+        "强制检索触发是以下 A、B 两类的并集",
+        "命中任一类，都必须在回答前实际调用 breath_search",
+        "“知道”不等于“已经检索”",
+        "本轮必须产生实际 breath_search 调用",
+        "仅凭已有信息直接回答或复述上下文不算检索",
         "还必须检查 plan 专用通道",
         'domain="plan"',
         "plan 不出现在普通检索中",
@@ -54,13 +55,20 @@ def test_server_instructions_cover_the_four_behavior_protocols() -> None:
 def test_first_512_instruction_characters_cover_retrieval_boundaries() -> None:
     head = ANYING_BEHAVIOR_INSTRUCTIONS[:512]
     for phrase in (
-        "回答前先用 breath_search 检索",
+        "A、B 两类的并集",
+        "命中任一类，都必须在回答前实际调用 breath_search",
+        "过去事实类",
+        "共同经历",
+        "日期",
+        "纪念日",
+        "以前说过的话",
+        "项目历史",
         "长期人物认识",
         "稳定性格特点",
         "长期自我认识",
-        "即使答案已出现在当前或近期对话上下文",
-        "本轮回答前仍必须实际调用 breath_search",
-        "仅复述上下文而没有工具调用不算检索",
+        "“知道”不等于“已经检索”",
+        "本轮必须产生实际 breath_search 调用",
+        "仅凭已有信息直接回答或复述上下文不算检索",
         "还必须检查 plan 专用通道",
         'domain="plan"',
         "plan 不出现在普通检索中",
@@ -71,11 +79,33 @@ def test_first_512_instruction_characters_cover_retrieval_boundaries() -> None:
 def test_search_description_rejects_recent_context_as_a_retrieval_substitute() -> None:
     suffix = TOOL_DESCRIPTION_SUFFIXES["breath_search"]
     for phrase in (
-        "当前或近期对话上下文",
-        "本轮回答前仍必须实际调用本工具",
-        "仅复述上下文而没有工具调用不算检索",
+        "当前或近期上下文",
+        "本轮必须产生实际 breath_search 调用",
+        "仅凭已有信息直接回答或复述上下文不算检索",
     ):
         assert phrase in suffix
+
+
+def test_past_facts_and_anniversaries_remain_mandatory_retrieval_triggers() -> None:
+    for guidance in (
+        ANYING_BEHAVIOR_INSTRUCTIONS,
+        TOOL_DESCRIPTION_SUFFIXES["breath_search"],
+    ):
+        for phrase in (
+            "过去事实类",
+            "过去发生的事",
+            "共同经历",
+            "日期",
+            "纪念日",
+            "人物",
+            "约定",
+            "以前说过的话",
+            "项目历史",
+        ):
+            assert phrase in guidance
+        assert "A 或 B 中任一类型" in guidance
+        assert "刚在别的 chat 回答过" in guidance
+        assert "不得跳过检索" in guidance
 
 
 def test_stable_person_and_relationship_questions_require_retrieval() -> None:
@@ -90,7 +120,7 @@ def test_stable_person_and_relationship_questions_require_retrieval() -> None:
             "长期关系",
         ):
             assert phrase in guidance
-        assert "当前上下文已有答案" in guidance
+        assert "A 或 B 中任一类型" in guidance
         assert "自认为确定" in guidance
 
 
