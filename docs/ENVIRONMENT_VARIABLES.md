@@ -43,6 +43,7 @@
 - `OMBRE_SETUP_TOKEN`：首次设置密码的远程覆盖口令。默认只有从 `127.0.0.1`/`localhost` 直连（且没有反向代理转发头）的请求才能调用 `/auth/setup`；设置此变量后，远程请求带上请求头 `X-Ombre-Setup-Token: <此变量的值>` 也可以完成首次设置（Dashboard 网页本身不发这个头，需要手动 `curl` 调用一次）。适合"已经部署到云服务器、还没来得及先设 `OMBRE_DASHBOARD_PASSWORD`"这种场景的补救；密码设置成功后这个 token 就不再需要。
 - `OMBRE_DASHBOARD_SESSION_DAYS`：Dashboard 登录会话天数。
 - `OMBRE_TRUSTED_PROXY_CIDRS`：直接连接 OB 的最后一跳可信反向代理 CIDR；不是公网客户端 IP 或域名，禁止使用 `0.0.0.0/0`。官方 Compose 模板会从 `.env` 透传该值，修改后需要重新创建容器。
+- `OMBRE_ANYING_BEHAVIOR_PATCH`：显式设为 `true`/`1`/`yes`/`on` 时启用“安颖长期记忆”行为协议，只增强 MCP server instructions 与相关工具 description，不修改记忆数据结构、检索算法或工具处理逻辑；默认关闭。
 
 ## Tunnel、Hook 与 GitHub
 
