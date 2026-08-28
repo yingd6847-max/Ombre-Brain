@@ -44,6 +44,11 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from mcp.server.fastmcp import FastMCP
 
+from anying_behavior import (
+    ANYING_BEHAVIOR_INSTRUCTIONS,
+    anying_behavior_enabled,
+    apply_anying_behavior_patch,
+)
 from bucket_manager import BucketManager
 from deletion_requests import DeletionRequestStore
 from dehydrator import Dehydrator
@@ -374,6 +379,9 @@ mcp = FastMCP(
     port=OMBRE_PORT,
     json_response=True,
     stateless_http=True,
+    instructions=(
+        ANYING_BEHAVIOR_INSTRUCTIONS if anying_behavior_enabled() else None
+    ),
     lifespan=_stdio_lifespan if config.get("transport", "stdio") == "stdio" else None,
 )
 
@@ -1219,6 +1227,17 @@ async def I(
             "content_len": len(content or ""), "aspect": aspect, "read": read,
             "limit": limit, "promote": promote,
         },
+    )
+
+
+# 安颖版行为补丁只修改模型可见的 server instructions 与工具 description，
+# 不修改工具输入、处理函数、检索算法或存储结构。环境变量默认关闭；显式开启时
+# 若目标工具缺失则拒绝静默降级，避免“看似启用、实际漏规则”的部署。
+if anying_behavior_enabled():
+    _anying_patched_tools = apply_anying_behavior_patch(mcp, enabled=True)
+    logger.info(
+        "Anying behavior patch enabled for MCP tools: %s",
+        ", ".join(_anying_patched_tools),
     )
 
 
